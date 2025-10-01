@@ -523,21 +523,24 @@
                 }
             });
 
-            // CORRECCIÓN DEFINITIVA: Lógica para evitar cierre accidental del modal en móviles
+            // CORRECCIÓN FINAL Y MÁS ROBUSTA: Lógica para evitar cierre accidental del modal en móviles
             const handleSelectInteractionStart = () => {
                 isSelectMenuOpen = true;
             };
             const handleSelectInteractionEnd = () => {
-                // Usamos un timeout para ignorar el "toque fantasma" que ocurre
-                // justo después de que el menú de selección nativo se cierra.
+                // Se usa un timeout para crear una "pausa de seguridad". Esto ignora el "toque fantasma" 
+                // que ocurre en móviles justo después de que el menú de selección nativo se cierra,
+                // previniendo que el modal se cierre accidentalmente.
                 setTimeout(() => {
                     isSelectMenuOpen = false;
                 }, 150); 
             };
             [sizeSelect, colorSelect].forEach(select => {
-                // 'mousedown' es más fiable que 'focus' para detectar el inicio de la interacción.
+                // 'touchstart' es el evento más fiable en dispositivos táctiles para detectar el inicio de la interacción.
+                select.addEventListener('touchstart', handleSelectInteractionStart, { passive: true });
+                // Se mantiene 'mousedown' por compatibilidad con navegadores de escritorio.
                 select.addEventListener('mousedown', handleSelectInteractionStart);
-                // 'blur' se dispara cuando el menú de selección se cierra.
+                // 'blur' se dispara de forma consistente cuando el menú de selección pierde el foco (se cierra).
                 select.addEventListener('blur', handleSelectInteractionEnd);
             });
 
