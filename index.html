@@ -517,13 +517,13 @@
 
             closeModalButton.addEventListener('click', closeProductModal);
             
-            productModal.addEventListener('click', (e) => {
+            productModal.addEventListener('pointerdown', (e) => {
                 if (e.target === productModal && !isSelectMenuOpen) {
                     closeProductModal();
                 }
             });
 
-            // CORRECCIÓN FINAL Y MÁS ROBUSTA: Lógica para evitar cierre accidental del modal en móviles
+            // CORRECCIÓN FINAL Y MÁS ROBUSTA: Lógica para evitar cierre accidental del modal en Safari/iOS
             const handleSelectInteractionStart = () => {
                 isSelectMenuOpen = true;
             };
