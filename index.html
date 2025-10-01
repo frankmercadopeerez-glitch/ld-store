@@ -28,6 +28,9 @@
         /* Bloquea el scroll del body cuando un modal está abierto */
         body.overflow-hidden {
             overflow: hidden;
+            /* Estilos adicionales para un bloqueo de scroll robusto en móviles (iOS) */
+            position: fixed;
+            width: 100%;
         }
 
         .header-bg {
@@ -295,6 +298,8 @@
             let discountApplied = false;
             let currentProduct = null;
             let toastTimeout;
+            let isSelectMenuOpen = false; // <-- CORRECCIÓN: Bandera para controlar el estado del menú desplegable
+            let scrollPosition = 0; // <-- CORRECCIÓN: Para guardar la posición del scroll
 
             // Selectores del DOM
             const productGrid = document.getElementById('product-grid');
@@ -324,8 +329,18 @@
             const mobileMenu = document.getElementById('mobile-menu');
 
             // --- FUNCIONES AUXILIARES ---
-            const lockScroll = () => document.body.classList.add('overflow-hidden');
-            const unlockScroll = () => document.body.classList.remove('overflow-hidden');
+            // CORRECCIÓN: Funciones de bloqueo de scroll mejoradas para móviles
+            const lockScroll = () => {
+                scrollPosition = window.pageYOffset;
+                document.body.style.top = `-${scrollPosition}px`;
+                document.body.classList.add('overflow-hidden');
+            };
+            const unlockScroll = () => {
+                document.body.classList.remove('overflow-hidden');
+                document.body.style.removeProperty('top');
+                window.scrollTo(0, scrollPosition);
+            };
+
             const formatCurrency = (amount) => `COP $${amount.toLocaleString('es-CO')}`;
             const saveCart = () => localStorage.setItem('ld_store_cart', JSON.stringify(cart));
             function copyToClipboard(text) {
@@ -503,12 +518,23 @@
 
             closeModalButton.addEventListener('click', closeProductModal);
             
-            // CORRECCIÓN: Cierra el modal solo si se hace clic en el fondo (el overlay mismo)
+            // CORRECCIÓN DEFINITIVA: Cierra el modal solo si el clic es en el fondo (overlay).
             productModal.addEventListener('click', (e) => {
-                if (e.target === productModal) {
+                // Solo cierra si el click es en el overlay Y el menú desplegable NO está abierto.
+                if (e.target === productModal && !isSelectMenuOpen) {
                     closeProductModal();
                 }
             });
+
+            // CORRECCIÓN: Eventos para controlar si el menú desplegable está activo
+            const handleSelectFocus = () => { isSelectMenuOpen = true; };
+            const handleSelectBlur = () => { isSelectMenuOpen = false; };
+            [sizeSelect, colorSelect].forEach(select => {
+                select.addEventListener('focus', handleSelectFocus);
+                select.addEventListener('blur', handleSelectBlur);
+                select.addEventListener('change', handleSelectBlur);
+            });
+
 
             addToCartModalButton.addEventListener('click', () => {
                 const selectedSize = sizeSelect.value;
