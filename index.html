@@ -13,6 +13,10 @@
             font-family: 'Poppins', sans-serif;
             background-color: #FFF5F7; /* Rosa claro */
         }
+        /* Clase para bloquear el scroll del body */
+        body.overflow-hidden {
+            overflow: hidden;
+        }
         .header-bg {
             background-color: #FFC0CB; /* Rosa más fuerte */
         }
@@ -28,9 +32,6 @@
         }
         .btn-hover:hover {
             transform: scale(1.05);
-        }
-        .cart-modal {
-            transition: opacity 0.3s ease-in-out;
         }
         .slide-in {
             animation: slide-in 0.5s forwards;
@@ -54,14 +55,32 @@
         }
         /* Corrección para modal en móvil */
         #product-modal .modal-content {
-            max-height: 85vh;
+            max-height: 90vh; /* Aumentado para dar más espacio */
             overflow-y: auto;
         }
+        /* Previene el zoom en iOS al seleccionar tallas/colores */
+        #size-select, #color-select {
+            font-size: 16px;
+        }
         .whatsapp-float {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
         .whatsapp-float:hover {
             transform: scale(1.1);
+        }
+        .whatsapp-float.hidden {
+            opacity: 0;
+            transform: scale(0);
+        }
+        /* Estilos para la notificación "Añadido al carrito" */
+        .toast-notification {
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            transform: translateY(200%);
+            opacity: 0;
+        }
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
         }
     </style>
 </head>
@@ -123,10 +142,10 @@
 
     <!-- Product Modal -->
     <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <button id="close-modal" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
+            <i class="fas fa-times text-lg"></i>
+        </button>
          <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full m-4 relative animate-fade-in-up">
-            <button id="close-modal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-10">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
             <div class="flex flex-col md:flex-row gap-6">
                 <img id="modal-img" src="" alt="Product Image" class="w-full md:w-1/2 h-auto object-cover rounded-md">
                 <div class="flex flex-col justify-center w-full md:w-1/2">
@@ -191,14 +210,26 @@
     </div>
     
     <!-- Botón flotante de WhatsApp -->
-    <a href="https://wa.me/573002079982" target="_blank" class="fixed bottom-6 right-6 z-50 whatsapp-float">
+    <a id="whatsapp-button" href="https://wa.me/573002079982" target="_blank" class="fixed bottom-6 right-6 z-30 whatsapp-float">
         <img src="images/whatsapp-logo.png" alt="Contactar por WhatsApp" class="w-16 h-16">
     </a>
+
+    <!-- Notificación "Añadido al Carrito" -->
+    <div id="add-to-cart-toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-4 z-50 toast-notification">
+        <div class="flex items-center justify-between">
+            <p class="font-semibold"><i class="fas fa-check-circle text-green-400 mr-2"></i>¡Añadido al carrito!</p>
+            <div class="flex gap-2">
+                <button id="toast-go-to-cart" class="bg-pink-500 text-white text-sm font-bold py-2 px-3 rounded-md">Ver Carrito</button>
+                <button id="toast-keep-shopping" class="text-gray-300 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         const products = [
             { id: 1, name: 'Enterizo Corto Seamless', price: 50000, img: 'images/catalogo (8).jpg', sizes: ['S', 'M', 'L'], colors: ['Azul Rey'] },
-            { id: 2, name: 'Vestido Deportivo', price: 55000, img: 'images/catalogo (7).jpg', sizes: ['S', 'M', 'L'], colors: ['Marrón', 'Rojo'] }, // Agrupado
+            { id: 2, name: 'Vestido Deportivo', price: 55000, img: 'images/catalogo (7).jpg', sizes: ['S', 'M', 'L'], colors: ['Marrón', 'Rojo'] },
             { id: 3, name: 'Leggings Push Up', price: 70000, img: 'images/catalogo (6).jpg', sizes: ['S', 'M', 'L'], colors: ['Verde', 'Amarillo', 'Café', 'Negro', 'Rosa'] },
             { id: 5, name: 'Conjunto Falda y Top', price: 85000, img: 'images/catalogo (4).jpg', sizes: ['S', 'M', 'L'], colors: ['Marrón'] },
             { id: 6, name: 'Enterizo Largo Espalda Abierta', price: 90000, img: 'images/catalogo (3).jpg', sizes: ['S', 'M', 'L'], colors: ['Lila'] },
@@ -228,7 +259,15 @@
         const sizeSelect = document.getElementById('size-select');
         const colorSelect = document.getElementById('color-select');
         const addToCartModalButton = document.getElementById('add-to-cart-modal');
+        const whatsappButton = document.getElementById('whatsapp-button');
+        const addToCartToast = document.getElementById('add-to-cart-toast');
+        const toastGoToCart = document.getElementById('toast-go-to-cart');
+        const toastKeepShopping = document.getElementById('toast-keep-shopping');
         let currentProduct = null;
+        let toastTimeout;
+
+        function lockScroll() { document.body.classList.add('overflow-hidden'); }
+        function unlockScroll() { document.body.classList.remove('overflow-hidden'); }
         
         function formatCurrency(amount) {
             return `COP $${amount.toLocaleString('es-CO')}`;
@@ -260,6 +299,13 @@
             colorSelect.innerHTML = product.colors.map(color => `<option>${color}</option>`).join('');
             productModal.classList.remove('hidden');
             productModal.classList.add('flex');
+            lockScroll();
+        }
+
+        function closeProductModal() {
+            productModal.classList.add('hidden');
+            productModal.classList.remove('flex');
+            unlockScroll();
         }
 
         function addToCart(productId, size, color) {
@@ -300,20 +346,16 @@
                 </div>
             `).join('');
             
-            document.querySelectorAll('.remove-item').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const { id, size, color } = e.currentTarget.dataset;
-                    removeFromCart(parseInt(id), size, color);
-                });
-            });
+            document.querySelectorAll('.remove-item').forEach(button => button.addEventListener('click', (e) => {
+                const { id, size, color } = e.currentTarget.dataset;
+                removeFromCart(parseInt(id), size, color);
+            }));
 
-            document.querySelectorAll('.quantity-input').forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const { id, size, color } = e.currentTarget.dataset;
-                    const quantity = parseInt(e.currentTarget.value);
-                    updateQuantity(parseInt(id), size, color, quantity);
-                });
-            });
+            document.querySelectorAll('.quantity-input').forEach(input => input.addEventListener('change', (e) => {
+                const { id, size, color } = e.currentTarget.dataset;
+                const quantity = parseInt(e.currentTarget.value);
+                updateQuantity(parseInt(id), size, color, quantity);
+            }));
         }
         
         function removeFromCart(productId, size, color) {
@@ -323,22 +365,14 @@
         
         function updateQuantity(productId, size, color, quantity) {
             const cartItem = cart.find(item => item.id === productId && item.size === size && item.color === color);
-            if (cartItem) {
-                if (quantity > 0) {
-                    cartItem.quantity = quantity;
-                } else {
-                    removeFromCart(productId, size, color);
-                }
-            }
+            if (cartItem) { (quantity > 0) ? cartItem.quantity = quantity : removeFromCart(productId, size, color); }
             updateCart();
         }
 
         function updateCartTotals() {
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             let discount = 0;
-            if(discountApplied) {
-                discount = subtotal * 0.10;
-            }
+            if(discountApplied) { discount = subtotal * 0.10; }
             const total = subtotal - discount;
 
             subtotalEl.textContent = formatCurrency(subtotal);
@@ -352,23 +386,48 @@
         
         function openCart() {
             cartModal.classList.remove('hidden');
+            whatsappButton.classList.add('hidden');
+            lockScroll();
+        }
+
+        function closeCart() {
+            cartModal.classList.add('hidden');
+            whatsappButton.classList.remove('hidden');
+            unlockScroll();
+        }
+
+        function showAddToCartToast() {
+            clearTimeout(toastTimeout);
+            addToCartToast.classList.add('show');
+            toastTimeout = setTimeout(() => {
+                addToCartToast.classList.remove('show');
+            }, 5000); // El aviso se oculta solo después de 5 segundos
         }
         
-        closeModalButton.addEventListener('click', () => { productModal.classList.add('hidden'); productModal.classList.remove('flex'); });
-        productModal.addEventListener('click', (e) => { if (e.target.id === 'product-modal') { productModal.classList.add('hidden'); productModal.classList.remove('flex'); } });
+        closeModalButton.addEventListener('click', closeProductModal);
+        productModal.addEventListener('click', (e) => { if (e.target.id === 'product-modal') { closeProductModal(); } });
 
         addToCartModalButton.addEventListener('click', () => {
             const selectedSize = sizeSelect.value;
             const selectedColor = colorSelect.value;
             addToCart(currentProduct.id, selectedSize, selectedColor);
-            productModal.classList.add('hidden');
-            productModal.classList.remove('flex');
-            openCart();
+            closeProductModal();
+            showAddToCartToast();
         });
         
         cartButton.addEventListener('click', openCart);
-        closeCartButton.addEventListener('click', () => cartModal.classList.add('hidden'));
-        cartModal.addEventListener('click', (e) => { if (e.target === cartModal) { cartModal.classList.add('hidden'); } });
+        closeCartButton.addEventListener('click', closeCart);
+        cartModal.addEventListener('click', (e) => { if (e.target === cartModal) { closeCart(); } });
+
+        toastGoToCart.addEventListener('click', () => {
+            addToCartToast.classList.remove('show');
+            clearTimeout(toastTimeout);
+            openCart();
+        });
+        toastKeepShopping.addEventListener('click', () => {
+            addToCartToast.classList.remove('show');
+            clearTimeout(toastTimeout);
+        });
 
         document.getElementById('mobile-menu-button').addEventListener('click', () => {
             document.getElementById('mobile-menu').classList.toggle('hidden');
@@ -387,21 +446,12 @@
             `;
 
             document.getElementById('copy-coupon-btn').addEventListener('click', () => {
-                const tempInput = document.createElement('input');
-                tempInput.value = couponCode;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                try {
-                    document.execCommand('copy');
+                navigator.clipboard.writeText(couponCode).then(() => {
                     const btn = document.getElementById('copy-coupon-btn');
                     btn.textContent = '¡Copiado!';
                     setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
-                } catch (err) {
-                    console.error('Error al copiar el código: ', err);
-                }
-                document.body.removeChild(tempInput);
+                }).catch(err => console.error('Error al copiar el código: ', err));
             });
-
             emailInput.value = '';
         });
 
@@ -411,42 +461,26 @@
                 discountApplied = true;
                 discountMessageEl.textContent = "¡Descuento del 10% aplicado!";
                 discountMessageEl.className = "text-sm mb-2 text-green-600";
-                updateCartTotals();
             } else {
                 discountApplied = false;
                 discountMessageEl.textContent = "Código no válido.";
                 discountMessageEl.className = "text-sm mb-2 text-red-500";
-                updateCartTotals();
             }
+            updateCartTotals();
         });
         
         checkoutButton.addEventListener('click', () => {
-            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-            let discount = 0;
-            if(discountApplied) {
-                discount = subtotal * 0.10;
-            }
-            const total = subtotal - discount;
-
-            if (total === 0) {
-                alert("El carrito está vacío.");
-                return;
-            }
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0) * (discountApplied ? 0.9 : 1);
+            if (total === 0) { return; }
 
             const publicKey = '2afb1fbc68127ec795f857d972391ec4'; 
             const invoice = 'LD-' + new Date().getTime();
             const description = 'Compra en LD Store by Liz Dayana';
 
             const url = `https://checkout.epayco.co/checkout.php?` +
-                `p_key=${publicKey}&` +
-                `p_amount=${total}&` +
-                `p_tax=0&p_amount_base=0&p_tax_base=0&` +
-                `p_currency=COP&` +
-                `p_id_invoice=${invoice}&` +
-                `p_description=${encodeURIComponent(description)}&` +
-                `p_country=CO&p_lang=es&`+
-                `p_url_response=${window.location.href}&` +
-                `p_test_request=true`;
+                `p_key=${publicKey}&p_amount=${total}&p_currency=COP&` +
+                `p_id_invoice=${invoice}&p_description=${encodeURIComponent(description)}&` +
+                `p_country=CO&p_lang=es&p_url_response=${window.location.href}&p_test_request=true`;
             
             window.location.href = url;
         });
