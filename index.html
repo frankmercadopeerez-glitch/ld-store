@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LD Store by Liz Dayana</title>
-    <link rel="icon" type="image/png" href="favicon.png?v=2">
+    <link rel="icon" type="image/png" href="images/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -52,12 +52,16 @@
                 transform: translateY(0);
             }
         }
-        .debug-message {
-            animation: fadeIn 0.5s ease-out;
+        /* Corrección para modal en móvil */
+        #product-modal .modal-content {
+            max-height: 85vh;
+            overflow-y: auto;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .whatsapp-float {
+            transition: transform 0.3s ease;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -118,8 +122,8 @@
     </section>
 
     <!-- Product Modal -->
-    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 overflow-y-auto">
-         <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full m-4 relative animate-fade-in-up">
+    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+         <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full m-4 relative animate-fade-in-up">
             <button id="close-modal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-10">
                 <i class="fas fa-times text-2xl"></i>
             </button>
@@ -182,10 +186,14 @@
                 <button id="checkout-button" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold btn-hover hover:bg-green-600">
                     Pagar con ePayco <i class="fas fa-lock ml-2"></i>
                 </button>
-                <div id="debug-container" class="mt-4"></div>
             </div>
         </div>
     </div>
+    
+    <!-- Botón flotante de WhatsApp -->
+    <a href="https://wa.me/573002079982" target="_blank" class="fixed bottom-6 right-6 z-50 whatsapp-float">
+        <img src="images/whatsapp-logo.png" alt="Contactar por WhatsApp" class="w-16 h-16">
+    </a>
 
     <script>
         const products = [
@@ -201,8 +209,6 @@
         let cart = [];
         let discountApplied = false;
 
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Se restauran todas las declaraciones de variables para los elementos del DOM.
         const productGrid = document.getElementById('product-grid');
         const cartButton = document.getElementById('cart-button');
         const cartModal = document.getElementById('cart-modal');
@@ -223,7 +229,6 @@
         const colorSelect = document.getElementById('color-select');
         const addToCartModalButton = document.getElementById('add-to-cart-modal');
         let currentProduct = null;
-        // --- FIN DE LA CORRECCIÓN ---
         
         function formatCurrency(amount) {
             return `COP $${amount.toLocaleString('es-CO')}`;
@@ -350,7 +355,7 @@
         }
         
         closeModalButton.addEventListener('click', () => { productModal.classList.add('hidden'); productModal.classList.remove('flex'); });
-        productModal.addEventListener('click', (e) => { if (e.target === productModal) { productModal.classList.add('hidden'); productModal.classList.remove('flex'); } });
+        productModal.addEventListener('click', (e) => { if (e.target.id === 'product-modal') { productModal.classList.add('hidden'); productModal.classList.remove('flex'); } });
 
         addToCartModalButton.addEventListener('click', () => {
             const selectedSize = sizeSelect.value;
@@ -424,7 +429,7 @@
             const total = subtotal - discount;
 
             if (total === 0) {
-                console.log("El carrito está vacío, no se puede proceder al pago.");
+                alert("El carrito está vacío.");
                 return;
             }
 
@@ -443,28 +448,12 @@
                 `p_url_response=${window.location.href}&` +
                 `p_test_request=true`;
             
-            // Redirección a ePayco (temporalmente desactivada para depuración)
-            // window.location.href = url;
-
-            // --- INICIO: CÓDIGO DE DEPURACIÓN ---
-            console.log("URL de ePayco generada (copia y pega en el navegador para probar):", url);
-            const debugContainer = document.getElementById('debug-container');
-            
-            debugContainer.innerHTML = `
-                <div class="p-3 bg-yellow-100 text-yellow-800 rounded-md text-sm debug-message">
-                    <strong>Modo Depuración:</strong> La redirección está pausada. Revisa la consola del navegador (F12) para ver la URL de pago y contacta a soporte de ePayco con ese dato.
-                </div>
-            `;
-
-            setTimeout(() => {
-                debugContainer.innerHTML = '';
-            }, 10000); // El mensaje desaparece después de 10 segundos
-            // --- FIN: CÓDIGO DE DEPURACIÓN ---
+            window.location.href = url;
         });
 
         renderProducts();
     </script>
-    <script src="auth.js"></script> <!-- Script para manejar la sesión -->
+    <script src="auth.js"></script>
 </body>
 </html>
 

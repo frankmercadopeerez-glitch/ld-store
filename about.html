@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sobre Liz Dayana - LD Store</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="images/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,46 +18,66 @@
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body>
 
     <!-- Header -->
-    <header class="header-bg shadow-md sticky top-0 z-40">
+    <header class="header-bg text-gray-800 shadow-md sticky top-0 z-40">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html" class="text-2xl font-bold">LD Store</a>
-            <div class="flex space-x-6 items-center">
+            <div class="hidden md:flex space-x-6 items-center">
                 <a href="index.html" class="hover:text-white transition">Inicio</a>
                 <a href="about.html" class="hover:text-white transition">Sobre Liz Dayana</a>
                 <a href="policies.html" class="hover:text-white transition">Políticas</a>
-                <a href="index.html" class="relative">
+                 <div id="account-links">
+                    <a href="account.html" class="hover:text-white transition">Mi Cuenta</a>
+                </div>
+            </div>
+             <div class="flex items-center">
+                <a href="index.html#cart-button" id="cart-button" class="relative">
                     <i class="fas fa-shopping-cart text-2xl"></i>
                 </a>
+                 <button id="mobile-menu-button" class="md:hidden ml-4">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
             </div>
         </nav>
+         <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white/80 backdrop-blur-sm">
+             <a href="index.html" class="block px-6 py-3 text-gray-800 hover:bg-pink-100">Inicio</a>
+            <a href="about.html" class="block px-6 py-3 text-gray-800 hover:bg-pink-100">Sobre Liz Dayana</a>
+            <a href="policies.html" class="block px-6 py-3 text-gray-800 hover:bg-pink-100">Políticas</a>
+            <a href="account.html" class="block px-6 py-3 text-gray-800 hover:bg-pink-100">Mi Cuenta</a>
+        </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-6 py-16">
-        <div class="bg-white rounded-lg shadow-xl p-8 md:p-12 max-w-4xl mx-auto">
-            <h1 class="text-4xl font-bold text-center text-pink-500 mb-8">Nuestra Fundadora</h1>
-            <div class="flex flex-col md:flex-row items-center gap-12">
-                <div class="md:w-2/3 text-lg leading-relaxed">
-                    <p class="mb-4">
-                        <strong>Liz Dayana</strong> es el corazón y el alma detrás de LD Store. Desde siempre, ha sido una apasionada por la belleza femenina en todas sus formas. Cree firmemente que la moda es más que solo ropa; es una herramienta de expresión, confianza y empoderamiento.
-                    </p>
-                    <p class="mb-4">
-                        Con esta tienda, Liz Dayana busca reforzar esa visión, ofreciendo prendas que no solo siguen las últimas tendencias, sino que también celebran la silueta de cada mujer, haciéndola sentir cómoda, segura y radiante.
-                    </p>
-                    <p>
-                        Cada pieza de nuestra colección es seleccionada con amor, pensando en la mujer moderna que valora la calidad, el estilo y, sobre todo, sentirse increíble en su propia piel. ¡Bienvenida a nuestro sueño hecho realidad!
-                    </p>
-                </div>
-                 <div class="md:w-1/3 flex-shrink-0">
-                    <img src="favicon.png" alt="Liz Dayana" class="w-60 h-60 mx-auto rounded-full object-cover border-4 border-pink-200 shadow-lg">
-                </div>
+    <main class="container mx-auto px-6 py-12">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-4xl mx-auto">
+            <div class="text-center">
+                <img src="images/favicon.png" alt="Liz Dayana" class="w-40 h-40 rounded-full mx-auto mb-6 border-4 border-pink-300">
+                <h1 class="text-4xl font-bold text-gray-800">Liz Dayana</h1>
+                <p class="text-pink-500 text-lg">Fundadora de LD Store</p>
+            </div>
+            <div class="mt-8 text-gray-700 text-lg leading-relaxed">
+                <p>
+                    Desde siempre, he sentido una profunda fascinación por la belleza y la fuerza que reside en cada mujer. La moda no es solo ropa; es una forma de expresión, una herramienta para contar nuestra historia y una manera de sentirnos seguras y empoderadas en nuestra propia piel.
+                </p>
+                <br>
+                <p>
+                    Con <strong>LD Store</strong>, mi sueño es crear más que una simple tienda. Quiero construir una comunidad donde cada prenda sea una invitación a celebrar tu autenticidad. Cada colección es seleccionada con amor, pensando en la comodidad, el estilo y la versatilidad que necesitamos para conquistar nuestro día a día.
+                </p>
+                <br>
+                <p>
+                    Mi misión es reforzar esa belleza femenina innata, ofreciendo piezas que no solo te hagan ver increíble, sino que te hagan sentir invencible. Porque cuando una mujer se siente bien consigo misma, no hay nada que no pueda lograr.
+                </p>
+                <br>
+                <p class="text-center font-semibold text-pink-600">
+                    ¡Gracias por ser parte de este sueño!
+                </p>
             </div>
         </div>
     </main>
-
+    <script src="auth.js"></script>
 </body>
 </html>
 
