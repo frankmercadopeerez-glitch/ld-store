@@ -328,6 +328,32 @@
             const unlockScroll = () => document.body.classList.remove('overflow-hidden');
             const formatCurrency = (amount) => `COP $${amount.toLocaleString('es-CO')}`;
             const saveCart = () => localStorage.setItem('ld_store_cart', JSON.stringify(cart));
+            function copyToClipboard(text) {
+                // Usa la API moderna del portapapeles si está disponible
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text);
+                } else {
+                    // Fallback para navegadores más antiguos
+                    let textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    textArea.style.top = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    return new Promise((res, rej) => {
+                        try {
+                            document.execCommand('copy') ? res() : rej('No se pudo copiar');
+                        } catch (error) {
+                            rej(error);
+                        } finally {
+                            document.body.removeChild(textArea);
+                        }
+                    });
+                }
+            }
+
 
             // --- LÓGICA DE PRODUCTOS ---
             function renderProducts() {
@@ -544,12 +570,14 @@
                     <button id="copy-coupon-btn" class="ml-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-md hover:bg-pink-600">Copiar</button>
                 `;
 
-                document.getElementById('copy-coupon-btn').addEventListener('click', () => {
-                    navigator.clipboard.writeText(couponCode).then(() => {
-                        const btn = document.getElementById('copy-coupon-btn');
-                        btn.textContent = '¡Copiado!';
+                document.getElementById('copy-coupon-btn').addEventListener('click', (event) => {
+                    const btn = event.currentTarget;
+                    copyToClipboard(couponCode).then(() => {
+                        btn.textContent = '¡Código copiado!';
                         setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
-                    }).catch(err => console.error('Error al copiar el código: ', err));
+                    }).catch(err => {
+                        console.error('Error al copiar el código: ', err);
+                    });
                 });
                 emailInput.value = '';
             });
