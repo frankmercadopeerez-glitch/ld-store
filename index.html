@@ -298,8 +298,8 @@
             let discountApplied = false;
             let currentProduct = null;
             let toastTimeout;
-            let isSelectMenuOpen = false; // <-- CORRECCIÓN: Bandera para controlar el estado del menú desplegable
-            let scrollPosition = 0; // <-- CORRECCIÓN: Para guardar la posición del scroll
+            let isSelectMenuOpen = false; 
+            let scrollPosition = 0; 
 
             // Selectores del DOM
             const productGrid = document.getElementById('product-grid');
@@ -329,7 +329,6 @@
             const mobileMenu = document.getElementById('mobile-menu');
 
             // --- FUNCIONES AUXILIARES ---
-            // CORRECCIÓN: Funciones de bloqueo de scroll mejoradas para móviles
             const lockScroll = () => {
                 scrollPosition = window.pageYOffset;
                 document.body.style.top = `-${scrollPosition}px`;
@@ -518,21 +517,28 @@
 
             closeModalButton.addEventListener('click', closeProductModal);
             
-            // CORRECCIÓN DEFINITIVA: Cierra el modal solo si el clic es en el fondo (overlay).
             productModal.addEventListener('click', (e) => {
-                // Solo cierra si el click es en el overlay Y el menú desplegable NO está abierto.
                 if (e.target === productModal && !isSelectMenuOpen) {
                     closeProductModal();
                 }
             });
 
-            // CORRECCIÓN: Eventos para controlar si el menú desplegable está activo
-            const handleSelectFocus = () => { isSelectMenuOpen = true; };
-            const handleSelectBlur = () => { isSelectMenuOpen = false; };
+            // CORRECCIÓN DEFINITIVA: Lógica para evitar cierre accidental del modal en móviles
+            const handleSelectInteractionStart = () => {
+                isSelectMenuOpen = true;
+            };
+            const handleSelectInteractionEnd = () => {
+                // Usamos un timeout para ignorar el "toque fantasma" que ocurre
+                // justo después de que el menú de selección nativo se cierra.
+                setTimeout(() => {
+                    isSelectMenuOpen = false;
+                }, 150); 
+            };
             [sizeSelect, colorSelect].forEach(select => {
-                select.addEventListener('focus', handleSelectFocus);
-                select.addEventListener('blur', handleSelectBlur);
-                select.addEventListener('change', handleSelectBlur);
+                // 'mousedown' es más fiable que 'focus' para detectar el inicio de la interacción.
+                select.addEventListener('mousedown', handleSelectInteractionStart);
+                // 'blur' se dispara cuando el menú de selección se cierra.
+                select.addEventListener('blur', handleSelectInteractionEnd);
             });
 
 
