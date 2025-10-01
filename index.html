@@ -13,7 +13,6 @@
             font-family: 'Poppins', sans-serif;
             background-color: #FFF5F7; /* Rosa claro */
         }
-        /* Clase para bloquear el scroll del body */
         body.overflow-hidden {
             overflow: hidden;
         }
@@ -40,28 +39,42 @@
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
         }
-        .animate-fade-in-up {
-            animation: fade-in-up 0.4s ease-out;
+        
+        /* --- CORRECCIÓN DE ANIMACIONES --- */
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
         }
-        @keyframes fade-in-up {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .modal-overlay .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: scale(0.95);
+            opacity: 0;
         }
-        /* Corrección para modal en móvil */
+        .modal-overlay.show {
+            opacity: 1;
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
         #product-modal .modal-content {
-            max-height: 90vh; /* Aumentado para dar más espacio */
+            max-height: 90vh;
             overflow-y: auto;
         }
-        /* Previene el zoom en iOS al seleccionar tallas/colores */
+
+        /* --- CORRECCIÓN SELECTORES EN MÓVIL --- */
         #size-select, #color-select {
-            font-size: 16px;
+            font-size: 16px; /* Previene zoom en iOS */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            padding-right: 2.5rem;
         }
+
         .whatsapp-float {
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
@@ -72,10 +85,11 @@
             opacity: 0;
             transform: scale(0);
         }
-        /* Estilos para la notificación "Añadido al carrito" */
+
+        /* --- CORRECCIÓN NOTIFICACIÓN EN MÓVIL --- */
         .toast-notification {
             transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
-            transform: translateY(200%);
+            transform: translateY(150%);
             opacity: 0;
         }
         .toast-notification.show {
@@ -141,11 +155,11 @@
     </section>
 
     <!-- Product Modal -->
-    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 modal-overlay opacity-0">
         <button id="close-modal" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black/50 rounded-full w-8 h-8 flex items-center justify-center">
             <i class="fas fa-times text-lg"></i>
         </button>
-         <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full m-4 relative animate-fade-in-up">
+         <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full m-4 relative">
             <div class="flex flex-col md:flex-row gap-6">
                 <img id="modal-img" src="" alt="Product Image" class="w-full md:w-1/2 h-auto object-cover rounded-md">
                 <div class="flex flex-col justify-center w-full md:w-1/2">
@@ -215,7 +229,7 @@
     </a>
 
     <!-- Notificación "Añadido al Carrito" -->
-    <div id="add-to-cart-toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-4 z-50 toast-notification">
+    <div id="add-to-cart-toast" class="fixed bottom-5 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto sm:w-11/12 max-w-md bg-gray-800 text-white rounded-lg shadow-lg p-4 z-50 toast-notification">
         <div class="flex items-center justify-between">
             <p class="font-semibold"><i class="fas fa-check-circle text-green-400 mr-2"></i>¡Añadido al carrito!</p>
             <div class="flex gap-2">
@@ -299,13 +313,19 @@
             colorSelect.innerHTML = product.colors.map(color => `<option>${color}</option>`).join('');
             productModal.classList.remove('hidden');
             productModal.classList.add('flex');
+            requestAnimationFrame(() => {
+                productModal.classList.add('show');
+            });
             lockScroll();
         }
 
         function closeProductModal() {
-            productModal.classList.add('hidden');
-            productModal.classList.remove('flex');
-            unlockScroll();
+            productModal.classList.remove('show');
+            setTimeout(() => {
+                productModal.classList.add('hidden');
+                productModal.classList.remove('flex');
+                unlockScroll();
+            }, 300); 
         }
 
         function addToCart(productId, size, color) {
