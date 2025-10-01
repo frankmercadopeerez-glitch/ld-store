@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LD Store by Liz Dayana</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,6 +38,26 @@
         @keyframes slide-in {
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.4s ease-out;
+        }
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .debug-message {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -98,16 +118,16 @@
     </section>
 
     <!-- Product Modal -->
-    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-         <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full m-4 relative animate-fade-in-up">
-            <button id="close-modal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-900">
+    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 overflow-y-auto">
+         <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full m-4 relative animate-fade-in-up">
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-10">
                 <i class="fas fa-times text-2xl"></i>
             </button>
-            <div class="flex flex-col md:flex-row gap-8">
+            <div class="flex flex-col md:flex-row gap-6">
                 <img id="modal-img" src="" alt="Product Image" class="w-full md:w-1/2 h-auto object-cover rounded-md">
-                <div class="flex flex-col justify-center">
-                    <h3 id="modal-title" class="text-3xl font-bold text-gray-800 mb-2"></h3>
-                    <p id="modal-price" class="text-2xl text-pink-500 font-semibold mb-4"></p>
+                <div class="flex flex-col justify-center w-full md:w-1/2">
+                    <h3 id="modal-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-2"></h3>
+                    <p id="modal-price" class="text-xl md:text-2xl text-pink-500 font-semibold mb-4"></p>
                     <div class="mb-4">
                         <label for="color-select" class="block text-sm font-medium text-gray-700 mb-1">Color:</label>
                         <select id="color-select" class="w-full p-2 border border-gray-300 rounded-md focus:ring-pink-500 focus:border-pink-500"></select>
@@ -162,6 +182,7 @@
                 <button id="checkout-button" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold btn-hover hover:bg-green-600">
                     Pagar con ePayco <i class="fas fa-lock ml-2"></i>
                 </button>
+                <div id="debug-container" class="mt-4"></div>
             </div>
         </div>
     </div>
@@ -180,6 +201,8 @@
         let cart = [];
         let discountApplied = false;
 
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Se restauran todas las declaraciones de variables para los elementos del DOM.
         const productGrid = document.getElementById('product-grid');
         const cartButton = document.getElementById('cart-button');
         const cartModal = document.getElementById('cart-modal');
@@ -200,6 +223,7 @@
         const colorSelect = document.getElementById('color-select');
         const addToCartModalButton = document.getElementById('add-to-cart-modal');
         let currentProduct = null;
+        // --- FIN DE LA CORRECCIÓN ---
         
         function formatCurrency(amount) {
             return `COP $${amount.toLocaleString('es-CO')}`;
@@ -419,7 +443,23 @@
                 `p_url_response=${window.location.href}&` +
                 `p_test_request=true`;
             
-            window.location.href = url;
+            // Redirección a ePayco (temporalmente desactivada para depuración)
+            // window.location.href = url;
+
+            // --- INICIO: CÓDIGO DE DEPURACIÓN ---
+            console.log("URL de ePayco generada (copia y pega en el navegador para probar):", url);
+            const debugContainer = document.getElementById('debug-container');
+            
+            debugContainer.innerHTML = `
+                <div class="p-3 bg-yellow-100 text-yellow-800 rounded-md text-sm debug-message">
+                    <strong>Modo Depuración:</strong> La redirección está pausada. Revisa la consola del navegador (F12) para ver la URL de pago y contacta a soporte de ePayco con ese dato.
+                </div>
+            `;
+
+            setTimeout(() => {
+                debugContainer.innerHTML = '';
+            }, 10000); // El mensaje desaparece después de 10 segundos
+            // --- FIN: CÓDIGO DE DEPURACIÓN ---
         });
 
         renderProducts();
