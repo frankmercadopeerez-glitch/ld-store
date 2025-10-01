@@ -329,11 +329,9 @@
             const formatCurrency = (amount) => `COP $${amount.toLocaleString('es-CO')}`;
             const saveCart = () => localStorage.setItem('ld_store_cart', JSON.stringify(cart));
             function copyToClipboard(text) {
-                // Usa la API moderna del portapapeles si está disponible
                 if (navigator.clipboard && window.isSecureContext) {
                     return navigator.clipboard.writeText(text);
                 } else {
-                    // Fallback para navegadores más antiguos
                     let textArea = document.createElement("textarea");
                     textArea.value = text;
                     textArea.style.position = "fixed";
@@ -343,13 +341,8 @@
                     textArea.focus();
                     textArea.select();
                     return new Promise((res, rej) => {
-                        try {
-                            document.execCommand('copy') ? res() : rej('No se pudo copiar');
-                        } catch (error) {
-                            rej(error);
-                        } finally {
-                            document.body.removeChild(textArea);
-                        }
+                        document.execCommand('copy') ? res() : rej(new Error('No se pudo copiar'));
+                        document.body.removeChild(textArea);
                     });
                 }
             }
@@ -468,11 +461,7 @@
                 discountAmountEl.textContent = `- ${formatCurrency(discount)}`;
                 totalEl.textContent = formatCurrency(total);
 
-                if (total > 0) {
-                    checkoutButton.disabled = false;
-                } else {
-                    checkoutButton.disabled = true;
-                }
+                checkoutButton.disabled = total <= 0;
             }
 
             function updateCartCount() {
@@ -513,7 +502,13 @@
             });
 
             closeModalButton.addEventListener('click', closeProductModal);
-            productModal.addEventListener('click', (e) => { if (e.target === productModal) closeProductModal(); });
+            
+            // CORRECCIÓN: Cierra el modal solo si se hace clic en el fondo (el overlay mismo)
+            productModal.addEventListener('click', (e) => {
+                if (e.target === productModal) {
+                    closeProductModal();
+                }
+            });
 
             addToCartModalButton.addEventListener('click', () => {
                 const selectedSize = sizeSelect.value;
